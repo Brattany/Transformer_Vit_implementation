@@ -3,7 +3,7 @@ import torch.nn as nn
 from .transformer import TransformerEncoder
 
 class PatchEmbedding(nn.Module):
-    def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
+    def __init__(self, img_size=28, patch_size=7, in_chans=1, embed_dim=128):
         super().__init__()
         assert img_size % patch_size == 0
         self.img_size = img_size
@@ -22,7 +22,8 @@ class PatchEmbedding(nn.Module):
 class CLS_Token(nn.Module):
     def __init__(self, embed_dim):
         super().__init__()
-        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        self.cls_token = nn.Parameter(torch.empty(1, 1, embed_dim))
+        nn.init.trunc_normal_(self.cls_token, std=0.02)
 
     def forward(self, x):
         batch_size = x.size(0)
@@ -34,6 +35,7 @@ class PositionalEmbedding(nn.Module):
     def __init__(self, num_patches, embed_dim):
         super().__init__()
         self.pos_embedding = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
+        nn.init.trunc_normal_(self.pos_embedding, std=0.02)
 
     def forward(self, x):
         return x + self.pos_embedding
@@ -49,7 +51,7 @@ class ClassificationHead(nn.Module):
 
 
 class VisionTransformer(nn.Module):
-    def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768, num_classes=1000, depth=12, num_heads=12, mlp_dim=3072, dropout=0.1):
+    def __init__(self, img_size=28, patch_size=7, in_chans=1, embed_dim=128, num_classes=10, depth=6, num_heads=4, mlp_dim=256, dropout=0.05):
         super().__init__()
         #vit图像输入部分
         self.patch_embedding = PatchEmbedding(img_size, patch_size, in_chans, embed_dim)
